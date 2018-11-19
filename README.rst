@@ -3,13 +3,11 @@ dynamic_refugee_matching
 ========================
 
 
-Add a short description here!
+**Project under development - only some functionalities are already active**
 
 
 Description
 ===========
-
-A longer description of your project goes here...
 
 
 Note

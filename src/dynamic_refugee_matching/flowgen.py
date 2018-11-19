@@ -10,13 +10,15 @@ def simulate_flow(no_asylum_seekers, no_municipalities, p_nond=0, p_over=0.5, au
 
     r_matrix = np.repeat(base_vector[np.newaxis].T,no_municipalities, axis=1)
     r_matrix[np.where(r_matrix==1)] = np.random.choice(
-    2, r_matrix[np.where(r_matrix==1)].shape,
-    p=[1-autocorrelation, autocorrelation])
+        2, 
+        r_matrix[np.where(r_matrix==1)].shape,
+        p=[1-autocorrelation, autocorrelation]
+        )
+
     r_matrix[np.where(r_matrix==0)] = np.random.choice(
-    2, r_matrix[np.where(r_matrix==0)].shape,
-    p=[autocorrelation, 1-autocorrelation])
-    matrix[int(np.around((p_over + p_nond)*no_asylum_seekers)):][:] = \
-    r_matrix[:][:]
+        2, r_matrix[np.where(r_matrix==0)].shape,
+        p=[autocorrelation, 1-autocorrelation])
+    matrix[int(np.around((p_over + p_nond)*no_asylum_seekers)):][:] = r_matrix[:][:]
 
     np.random.shuffle(matrix)
     return matrix

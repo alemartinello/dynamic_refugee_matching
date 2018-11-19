@@ -283,6 +283,9 @@
     \hypertarget{dynamic-refugee-matching}{%
 \section{Dynamic Refugee Matching}\label{dynamic-refugee-matching}}
 
+\hypertarget{demonstration}{%
+\section{Demonstration}\label{demonstration}}
+
 This notebook demonstrates the fuctioning of the mechanism introduced by
 Andersson, Ehlers and Martinello (2018). All the necessary
 documentation, requirements and dependecies should be documented in the
@@ -291,9 +294,10 @@ missing, please let us know.
 
 This notebook replicates and illustrates the allocation example we
 provide in the paper (Tables 1 and 2). The purpose of this notebook is
-to convey the intuition behind our allocation mechanism, and performs .
-Moreover, this notebook is meant to introduce you to the simulations we
-perform in the paper, which are replicable with a second notebook
+to convey the intuition behind our allocation mechanism, and to perform
+some simple benchmarking against naive allocation rules. Moreover, this
+notebook is meant to introduce you to the simulations we perform in the
+paper, which are replicable with a second notebook
 (\texttt{simulations.ipynb}).
 
     \begin{Verbatim}[commandchars=\\\{\}]
@@ -519,7 +523,6 @@ other by any number of asylum seekers).
 
     \begin{Verbatim}[commandchars=\\\{\}]
 {\color{incolor}In [{\color{incolor}5}]:} \PY{k+kn}{from} \PY{n+nn}{dynamic\PYZus{}refugee\PYZus{}matching}\PY{n+nn}{.}\PY{n+nn}{evaluate} \PY{k}{import} \PY{n}{calc\PYZus{}envy}
-        
         \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Envy matrix after AEM assignment}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{calc\PYZus{}envy}\PY{p}{(}\PY{n}{aem}\PY{o}{.}\PY{n}{assignment}\PY{p}{,} \PY{n}{scores\PYZus{}example}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
@@ -540,7 +543,6 @@ pareto-efficiency, AEM selects a superior allocation.
 
     \begin{Verbatim}[commandchars=\\\{\}]
 {\color{incolor}In [{\color{incolor}6}]:} \PY{k+kn}{from} \PY{n+nn}{dynamic\PYZus{}refugee\PYZus{}matching}\PY{n+nn}{.}\PY{n+nn}{evaluate} \PY{k}{import} \PY{n}{characterize\PYZus{}assignments}
-        
         \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{Envy matrix after sequential assignment}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{calc\PYZus{}envy}\PY{p}{(}\PY{n}{seq}\PY{o}{.}\PY{n}{assignment}\PY{p}{,} \PY{n}{scores\PYZus{}example}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
@@ -553,21 +555,22 @@ Envy matrix after sequential assignment
 
     \end{Verbatim}
 
-    Things get for the naive sequential assignment with time, as the number
-of asylum seekers grows. To show this worsening of performance, we
-duplicate the original asylum seeker flow by ten times, and compare the
-performance of our mechanism with those of a sequential assigment rule
-and random allocation.
+    Things get worse for the naive sequential assignment with time, as the
+number of asylum seekers grows. To show this worsening of performance,
+we duplicate the original asylum seeker flow by ten times, and compare
+the performance of our mechanism with those of a sequential assigment
+rule and random allocation.
 
 With ten times more refugees, both the sequential and random allocation
 mechanisms are not pareto-efficient, as they result in fewer than the
 potential 50 appropriate matches in the simulated asylum seeker flows.
 Moreover, while no locality envies another after allocating 100 asylum
-seekers with \texttt{aem}, two out of three localities envy another with
-an alternative uninformed assignment.
+seekers under the allocation selected by \texttt{aem}, two out of three
+localities envy another with an alternative uninformed assignment.
 
     \begin{Verbatim}[commandchars=\\\{\}]
 {\color{incolor}In [{\color{incolor}7}]:} \PY{c+c1}{\PYZsh{} Set seed numpy}
+        \PY{n}{np}\PY{o}{.}\PY{n}{random}\PY{o}{.}\PY{n}{seed}\PY{p}{(}\PY{l+m+mi}{1}\PY{p}{)}
         \PY{c+c1}{\PYZsh{} Replicate original arrival flow x10}
         \PY{k}{for} \PY{n}{i} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{l+m+mi}{10}\PY{p}{)}\PY{p}{:}
             \PY{k}{if} \PY{n}{i} \PY{o}{==} \PY{l+m+mi}{0}\PY{p}{:}
@@ -591,9 +594,9 @@ an alternative uninformed assignment.
 \begin{Verbatim}[commandchars=\\\{\}]
 {\color{outcolor}Out[{\color{outcolor}7}]:}                                                   AEM  Sequential  Random  \textbackslash{}
         Sum of demanded and over-demanded asylum seekers    5           5       5   
-        Sum of well-matched asylum seekers                  5           5       4   
+        Sum of well-matched asylum seekers                  5           5       5   
         \# localities envying another by more than 1 AS      0           2       2   
-        Maximum envy                                        0           3       3   
+        Maximum envy                                        0           3       1   
         
                                                           AEM (10x)  Sequential (10x)  \textbackslash{}
         Sum of demanded and over-demanded asylum seekers         50                50   
@@ -603,22 +606,92 @@ an alternative uninformed assignment.
         
                                                           Random (10x)  
         Sum of demanded and over-demanded asylum seekers            50  
-        Sum of well-matched asylum seekers                          44  
-        \# localities envying another by more than 1 AS               1  
-        Maximum envy                                                 8  
+        Sum of well-matched asylum seekers                          42  
+        \# localities envying another by more than 1 AS               2  
+        Maximum envy                                                12  
 \end{Verbatim}
             
+    \hypertarget{dynamic-implementation}{%
+\subsection{Dynamic implementation}\label{dynamic-implementation}}
+
+So far we have used ordered flows of refugees, where all information on
+future arrivals in a flow is available. \texttt{aem} processes every
+arriving asylum seeker without extracting any information of future
+arrivals, but only using the envy from past allocations to guide its
+path. Therefore, \texttt{aem} can (and is meant to) be implemented at
+every single refugee arrival.
+
+In practice, the algorithm only requires envy and past rankings at each
+assignment. With potentially binding quotas, \texttt{vector\_quotas}
+also needs to be transferred across algorithm calls. All this necessary
+information, which we need to transfer across individual allocations, is
+contained in the object exported by \texttt{aem}. We can thus implement
+\texttt{aem} dynamically and trasfer the necessary information across
+iterations (sylum seekers \(k \in \{1,\ldots,N\}\) as follows:
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}8}]:} \PY{k+kn}{from} \PY{n+nn}{dynamic\PYZus{}refugee\PYZus{}matching}\PY{n+nn}{.}\PY{n+nn}{assignment} \PY{k}{import} \PY{n}{assign}
+        
+        \PY{c+c1}{\PYZsh{} Dynamic implementation}
+        \PY{k}{for} \PY{n}{k} \PY{o+ow}{in} \PY{n+nb}{range}\PY{p}{(}\PY{n}{scores\PYZus{}example}\PY{o}{.}\PY{n}{shape}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{)}\PY{p}{:}
+            \PY{k}{if} \PY{n}{k}\PY{o}{==}\PY{l+m+mi}{0}\PY{p}{:}
+                \PY{n}{aem\PYZus{}dy} \PY{o}{=} \PY{n}{assign}\PY{p}{(}\PY{n}{scores\PYZus{}example}\PY{p}{[}\PY{p}{:}\PY{p}{]}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{[}\PY{n}{np}\PY{o}{.}\PY{n}{newaxis}\PY{p}{]}\PY{p}{,} \PY{n}{vector\PYZus{}quotas}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{p}{[}\PY{l+m+mi}{10}\PY{p}{,}\PY{l+m+mi}{10}\PY{p}{,}\PY{l+m+mi}{10}\PY{p}{]}\PY{p}{)}\PY{p}{)}
+                \PY{n}{total\PYZus{}assignment} \PY{o}{=} \PY{n}{aem\PYZus{}dy}\PY{o}{.}\PY{n}{assignment}
+            \PY{k}{else}\PY{p}{:}
+                \PY{n}{aem\PYZus{}dy} \PY{o}{=} \PY{n}{assign}\PY{p}{(}\PY{n}{scores\PYZus{}example}\PY{p}{[}\PY{p}{:}\PY{p}{]}\PY{p}{[}\PY{n}{k}\PY{p}{]}\PY{p}{[}\PY{n}{np}\PY{o}{.}\PY{n}{newaxis}\PY{p}{]}\PY{p}{,} 
+                                \PY{n}{pi\PYZus{}init} \PY{o}{=} \PY{n}{aem\PYZus{}dy}\PY{o}{.}\PY{n}{pi}\PY{p}{,} 
+                                \PY{n}{sigma\PYZus{}init} \PY{o}{=} \PY{n}{aem\PYZus{}dy}\PY{o}{.}\PY{n}{sigma}\PY{p}{,} 
+                                \PY{n}{envy\PYZus{}init} \PY{o}{=} \PY{n}{aem\PYZus{}dy}\PY{o}{.}\PY{n}{envy\PYZus{}final}\PY{p}{,}
+                                \PY{n}{vector\PYZus{}quotas} \PY{o}{=} \PY{n}{aem\PYZus{}dy}\PY{o}{.}\PY{n}{end\PYZus{}quotas}
+                               \PY{p}{)}
+                \PY{n}{total\PYZus{}assignment} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{vstack}\PY{p}{(}\PY{p}{(}\PY{n}{total\PYZus{}assignment}\PY{p}{,}\PY{n}{aem\PYZus{}dy}\PY{o}{.}\PY{n}{assignment}\PY{p}{)}\PY{p}{)}
+            
+        \PY{c+c1}{\PYZsh{} Cross\PYZhy{}check that the allocation is the same}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Assignment with dynamic implementation:}\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{total\PYZus{}assignment}\PY{p}{)}
+        \PY{n+nb}{print}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Assignment is all flow given at once:  }\PY{l+s+se}{\PYZbs{}n}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{total\PYZus{}assignment}\PY{p}{)}
+\end{Verbatim}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Assignment with dynamic implementation:
+ [[1 0 0]
+ [0 1 0]
+ [1 0 0]
+ [0 1 0]
+ [0 0 1]
+ [1 0 0]
+ [1 0 0]
+ [0 0 1]
+ [0 1 0]
+ [0 1 0]]
+Assignment is all flow given at once:  
+ [[1 0 0]
+ [0 1 0]
+ [1 0 0]
+ [0 1 0]
+ [0 0 1]
+ [1 0 0]
+ [1 0 0]
+ [0 0 1]
+ [0 1 0]
+ [0 1 0]]
+
+    \end{Verbatim}
+
     \hypertarget{references}{%
 \subsection{References}\label{references}}
 
 Andersson, T., L. Ehlers, and A. Martinello (2018). Dynamic Refugee
-Matching. Lund University Department of Economics Working Paper 2018
+Matching. Lund University Department of Economics Working Paper 2018: 7
 
 Bansak, K., J. Ferwerda, J. Hainmueller, A. Dillon, D. Hangartner, and
 D. Lawrence (2018). Improving refugee integration through data-driven
 algorithmic assignment. Science 359, 325-329.
 
-Trapp
+Trapp, Andrew C., Alexander Teytelboym, Alessandro Martinello, Tommy
+Andersson, and Narges Ahani. ``Placement Optimization in Refugee
+Resettlement.'' Lund University Department of Economics Working Paper
+2018: 23 (2018).
 
 
     % Add a bibliography block to the postdoc

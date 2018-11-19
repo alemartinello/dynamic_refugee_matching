@@ -234,7 +234,7 @@ def assign(scoring_matrix, vector_quotas=None, pi_init=None, sigma_init=None, en
 
     # initialize dynamic envy matrix
     envy = np.copy(envy_init)
-
+    
     ################################
     ######## BEGIN THE LOOP ########
     ################################
@@ -379,7 +379,6 @@ def assign(scoring_matrix, vector_quotas=None, pi_init=None, sigma_init=None, en
                 pi_max = np.max(pi)
                 pi[np.where(pi > pi[m_assigned])] += -1
                 pi[m_assigned] = pi_max
-
     ###############################
     ######## RECORD OUTPUT ########
     ###############################
@@ -389,5 +388,7 @@ def assign(scoring_matrix, vector_quotas=None, pi_init=None, sigma_init=None, en
     diagnostic = None
     envy_init = envy_init
     envy_final = envy
+    pi = pi
+    sigma = sigma
     return ReturnAssignment(assignment, pi, sigma, begin_quotas, end_quotas, diagnostic,
                             scoring_matrix, envy_final, envy_init)

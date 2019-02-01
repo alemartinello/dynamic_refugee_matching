@@ -1,0 +1,102 @@
+Date: 2019-01-28
+Parameters: 
+  - # simulations: 1000
+  - # refugees   : 1000
+Total running time: 2 hour(s), 0 minute(s), and 32.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 5
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 5
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 5
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 5
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 1
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 1
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 1
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 1
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 1
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 1
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 5
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 5
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 5
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 10
+  - # refugees   : 100
+Total running time: 0 hour(s), 0 minute(s), and 1.0 seconds
+
+Date: 2019-01-29
+Parameters: 
+  - # simulations: 1000
+  - # refugees   : 1000
+Total running time: 1 hour(s), 58 minute(s), and 12.0 seconds
+
+Date: 2019-01-30
+Parameters: 
+  - # simulations: 1000
+  - # refugees   : 1000
+Total running time: 0 hour(s), 0 minute(s), and 0.0 seconds
+

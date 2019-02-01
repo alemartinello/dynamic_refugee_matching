@@ -1,117 +1,105 @@
-import numpy as np 
+import numpy as np
+import pandas as pd
 import time
 import dynamic_refugee_matching.flowgen as flg
-import dynamic_refugee_matching.assignment as af
+import dynamic_refugee_matching.assignment as dfa
 from dynamic_refugee_matching.utilities import f_writetime
 
+def initialize_results(n_asylum_seekers, errorlist, country_properties):
+    results = {}
+    for key in country_properties.keys():
+        results[key] = {
+            'Sequential': np.zeros((n_asylum_seekers, 3))
+        }
+        for err in errorlist:
+            results[key]['DRM, {}% error'.format(err)] = np.zeros((n_asylum_seekers, 3))
+    return results
 
-def time_print(country, sim, interval, time):
-    if sim%interval==0:
-        print("Country:", country, "; Simulation", sim,". Elapsed time:", f_writetime(time))
-
-def evaluate_allocations(true_scores, assignments, envy_limit_fraction):
-    # Initialize misallocated counts
-    mis_dem = {}
-    for a_name in assignments.keys():
-        mis_dem[a_name] = 0
+def initialize_simulation_cache(dictionary):
+    simulation_cache = {}
+    for key in dictionary.keys():
+        simulation_cache[key] = {}
+        simulation_cache[key]['assignment'] = None
+        simulation_cache[key]['results'] = np.zeros((dictionary[key].shape[0],3))
     
-    n_refugees = true_scores.shape[0]
-    n_localities = true_scores.shape[1]
-    n_demanded_refugees = np.cumsum(np.amax(true_scores, axis=1))
+    return simulation_cache
 
-    # foreach refugee
+# def initialize_over_errors(n_asylum_seekers, errorlist):
+#     # Initialize empty result dictionary
+#     results = initialize_results(n_asylum_seekers, errorlist)
+
+#     # Initialize empty simulation dictionary
+#     simulation_cache = initialize_simulation_cache(results)
+
+#     return results, simulation_cache
+
+def compute_measures_by_k(assignment, demand_matrix, envy1_limit=2): # Can't I return 3 column vectors? If no quotas...
+    
+    n_demanded_refugees = np.cumsum(np.amax(demand_matrix, axis=1, keepdims=True), axis=0)
+    assignment_matrix = assignment.assignment
+    # Efficiency: # misallocated acceptable/n_demanded.refugees
+    misallocated = ((1-demand_matrix)*assignment_matrix*np.amax(demand_matrix, axis=1, keepdims=True))
+    misallocated = np.cumsum(np.amax(misallocated, axis=1, keepdims=True), axis=0)
+    with np.errstate(divide='ignore',invalid='ignore'):
+        inefficiency = misallocated/n_demanded_refugees
+    inefficiency[inefficiency == np.inf] = 0
+    inefficiency = inefficiency.flatten()
+    
+    # Envy
+    n_refugees = assignment_matrix.shape[0]
+    envy0 = []
+    envy1 = []
     for k in np.arange(n_refugees):
-        for name, assignment in assignments.items():
-            # update misallocated count
-            if (np.sum(true_scores[k])>0) and (np.sum(assignment[k][:]*true_scores[k][:])==0):
-                mis_dem[name] += 1
-            # calculate measures
-            max_envy = np.amax(assignment.get_envy(refugee=k,real_acceptance=true_scores), axis=1)
-            envy0 = np.mean((max_envy>0))
-            envy1 = np.mean(max_envy>=np.int32(np.round((n_refugees/n_municipalities)*envy_limit_fraction)))
-            
-            #HERE!!!!#
+        max_envy = np.amax(assignment.get_envy(refugee=k,correct_scores=demand_matrix), axis=1)
+        envy0.append(np.mean((max_envy>0)))
+        envy1.append(np.mean((max_envy>envy1_limit)))
+        
+    envy0 = np.array(envy0)
+    envy1 = np.array(envy1)
+    
+    return inefficiency, envy0, envy1
+    
 
-            if (n_demanded_refugees[k] > 0) :
-                effic = mis_dem[name]/n_demanded_refugees[k]
-            else:
-                effic = 0
+def simulate_over_errors(n_asylum_seekers, n_simulations, country_properties, errorlist, envy1_limit=2):
+    # Initialize empty result & simulation cache dictionary
+    results = initialize_results(n_asylum_seekers, errorlist, country_properties)
 
-def simulate_performance_witherror(n_refugees, n_simulations, sim_types, country_properties, errorslist, 
-    print_time=True, benchmark = ['sequential']
-    ):
+    for country, country_prop in country_properties.items():
+        for _ in np.arange(n_simulations):
+            # Simulate demand matrix
+            demand_matrix = flg.simulate_flow(
+                n_asylum_seekers, 
+                country_prop['n_localities'],
+                country_prop['AA'],
+                country_prop['NA'],
+                country_prop['autocorrelation'],
+            )
 
-    time_start = time.time()
-    output = np.zeros((n_refugees, len(sim_types)*3))
+            # for each assignment type in results[country], update results
+            for key in results[country].keys():
+                # calculate assignment
+                if key == 'Sequential':
+                    assignment = dfa.assign_seq(demand_matrix)
+                else:
+                    error = int(key[-9:-7])
+                    # scramble with error
+                    scrambled_matrix = flg.add_error(demand_matrix, error)
+                    assignment = dfa.assign(scrambled_matrix)
+                # compute measures
+                inefficiency, envy0, envy1 = compute_measures_by_k(assignment, demand_matrix, envy1_limit)
 
-    for country, countryinfo in country_properties.items():
-        if print_time:
-            time_print(country, sim, round(n_simulations/10), time.time() - time_start)
-            n_localities = countryinfo[0]
-            flowinfo = countryinfo[1]
+                # update results
+                results[country][key][:,0] = results[country][key][:,0] + inefficiency/n_simulations
+                results[country][key][:,1] = results[country][key][:,1] + envy0/n_simulations
+                results[country][key][:,2] = results[country][key][:,2] + envy1/n_simulations
 
-        for sim in np.arange(n_simulations):
-            
-            #############################
-            ### SIMULATE REFUGEE FLOW ###
-            #############################
-            # simulate demand/refugee flow
-            true_scores = flg.simulate_flow(n_refugees, n_localities[country], 
-                                            p_nond = flowinfo[0], 
-                                            p_over = flowinfo[1], 
-                                            autocorrelation = flowinfo[2]
-                                            )
-
-            #############################
-            ##### ALLOCATE REFUGEES #####
-            #############################
-            assignments = {}
-            # Benchmark allocations
-            for mdl in benchmark:
-                if mdl == 'sequential':
-                    assignments[mdl] = af.assign_seq(true_scores)
-                elif mdl == 'random':
-                    assignments[mdl] = af.assign_random(true_scores)
-            # AEM allocations
-            for error in errorslist:
-                assignments['err_{0}'.format(error)] = af.assign(flg.add_error(true_scores, error))
+        # turn into dataframe
+        for key in results[country].keys():
+            results[country][key] = pd.DataFrame(results[country][key], columns=['inefficiency', 'envy0', 'envy1'])
 
 
-            #############################
-            #### EVALUATE ALLOCATION ####
-            #############################
-            
-            # Initialize misallocated counts
-            mis_dem = {}
-            for mdl in benchmark:
-                mis_dem[mdl] = 0
-            for error in errorslist:
-                mis_dem['err_{0}'.format(error)] = 0
-            
-            n_demanded_refugees = np.cumsum(np.amax(true_scores, axis=1))
+    return results        
 
-            # foreach refugee
-            for k in np.arange(n_refugees):
-                for val, atype in enumerate(sim_types):
-                    # update misallocated count
-                    if (np.sum(true_scores[k])>0) and (np.sum(assignments[atype].assignment[k][:]*true_scores[k][:])==0):
-                        mis_dem[atype] += 1
-                    # calculate measures
-                    max_envy = np.amax(assignments[atype].get_envy(refugee=k,real_acceptance=true_scores), axis=1)
-                    envy0 = np.mean((max_envy>0))
-                    envy1 = np.mean((max_envy>=envy_limit))
-                    if n_demanded_refugees[k]>0:
-                        effic = mis_dem[atype]/n_demanded_refugees[k]
-                    else:
-                        effic = 0
-
-                    # Update averages
-                    output[k,val*3 + 0] = (output[k,val*3 + 0]*(sim) + envy0)/(sim+1)
-                    output[k,val*3 + 1] = (output[k,val*3 + 1]*(sim) + envy1)/(sim+1)
-                    output[k,val*3 + 2] = (output[k,val*3 + 2]*(sim) + effic)/(sim+1)
-
-        nameslist = []
-        for atype in sim_types:
-            nameslist.append('envy0_'+atype)
-            nameslist.append('envy1_'+atype)
-            nameslist.append('effic_'+atype)
+def simulate_over_quota_splits(vector_quotas, n_simulations, errorlist, envy1_limit):
+    
+    pass

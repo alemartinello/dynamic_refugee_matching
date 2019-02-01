@@ -20,7 +20,7 @@ def calc_envy(assignment, scores, refugee=None):
     assignment: A NxM matrix describing assignment
     scores:     The scoring matrix describing refugee-locality integration scores
     refugee:    the index of the refugee at which the envy matrix should be calculated. If equal to None, 
-                thenthe envy is calculated after the assigment of the last refugee in the flow
+                then the envy is calculated after the assigment of the last refugee in the flow
     """
     if refugee is None:
         refugee = assignment.shape[0]

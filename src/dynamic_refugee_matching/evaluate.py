@@ -69,3 +69,32 @@ def characterize_assignments(assignments_dict):
         )
 
     return df
+
+def return_pctile_fromhistogram(dataframe, pctile_list=[50], minmax = False):
+    """
+    Given a (sorted) dataframe recording frequencies, with values as columns, this function returns a specified percentile
+    for each row. By default, it returns the median. If minmax=True, it also returns max and minimum values
+    """
+    # Calculate cumulative sum
+    cumsum = dataframe.cumsum(axis=1)
+
+    # Calculate the position of each required percentiles
+    position_list = [dataframe.sum(axis=1)*x/100 for x in pctile_list]
+
+    # Calculate the upper and lower bounds of the percentile (in case of e.g. even N for median)
+    upper_bounds = [(cumsum.ge(position, axis=0)).idxmax(axis=1) for position in position_list]
+    lower_bounds = [(cumsum.le(position, axis=0)).idxmin(axis=1) for position in position_list]
+
+    # Average bounds
+    percentiles = [(low + upp)/2 for low, upp in zip(lower_bounds, upper_bounds)]
+
+    if minmax is True:
+        percentiles.append((cumsum >= 1).idxmax(axis=1))
+        percentiles.append((cumsum == dataframe.sum(axis=1)).idxmax(axis=1))
+        pctile_df = pd.concat(percentiles, axis=1, keys=[pctile for pctile in pctile_list] + ['min', 'max'])
+    else:
+        # Construct dataframe
+        pctile_df = pd.concat(percentiles, axis=1, keys=[pctile for pctile in pctile_list])
+
+
+    return pctile_df

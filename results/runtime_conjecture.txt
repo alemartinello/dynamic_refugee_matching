@@ -1,0 +1,24 @@
+Date: 2019-02-06
+Parameters: 
+  - # simulations: 20
+  - # refugees   : 1000
+Total running time: 0 hour(s), 0 minute(s), and 12.0 seconds
+
+Date: 2019-02-06
+Parameters: 
+  - # simulations: 5000
+  - # refugees   : 1000
+Total running time: 0 hour(s), 43 minute(s), and 0.0 seconds
+
+Date: 2019-02-07
+Parameters: 
+  - # simulations: 5000
+  - # refugees   : 1000
+Total running time: 0 hour(s), 6 minute(s), and 41.0 seconds
+
+Date: 2019-02-07
+Parameters: 
+  - # simulations: 5000
+  - # refugees   : 1000
+Total running time: 0 hour(s), 6 minute(s), and 45.0 seconds
+

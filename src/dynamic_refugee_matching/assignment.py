@@ -26,7 +26,8 @@ class ReturnAssignment(object):
         refugee: The index of the refugee at which to compute the utility matrix
         correct_scores: The scoring matrix against which envy should be computed. If equal to None, 
                         it assumes the assigment has been performed according to the correct scoring matrix 
-        ref_type: 
+        ref_type: [None, 'demanded', 'nondemanded']. If not None, uses only the specified refugee type for
+                    calculating envy (localities only care about the specified refugee type)
         """
         if refugee is None:
             refugee = self.assignment.shape[0]

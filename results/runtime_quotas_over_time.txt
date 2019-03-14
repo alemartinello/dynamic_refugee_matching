@@ -1,0 +1,6 @@
+Date: 2019-02-05
+Parameters: 
+  - # simulations: 1000
+  - # refugees   : 23568
+Total running time: 0 hour(s), 51 minute(s), and 38.0 seconds
+
